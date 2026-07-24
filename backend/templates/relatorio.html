@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* ========================================= */
+        /* Compras.io — Dark Carbon PDF Report       */
+        /* ========================================= */
+
+        @page {
+            size: A4;
+            margin: 20mm 15mm 20mm 15mm;
+            background-color: #0d0d0f;
+
+            @bottom-center {
+                content: "Compras.io — Relatório Gerado em {{ data_geracao }}  |  Página " counter(page) " de " counter(pages);
+                font-family: 'Courier New', monospace;
+                font-size: 7pt;
+                color: #555;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
+            background-color: #0d0d0f;
+            color: #e0e0e0;
+            font-size: 9pt;
+            line-height: 1.5;
+        }
+
+        /* ---- Carbon Texture Overlay ---- */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='4' height='4' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1' height='1' fill='%23ffffff' opacity='0.02'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* ---- HEADER ---- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a1a2e;
+            margin-bottom: 25px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #5b8cff, #00ff88);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 16pt;
+            color: #000;
+        }
+
+        .header-title {
+            font-family: 'Courier New', monospace;
+            font-size: 18pt;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title span {
+            color: #5b8cff;
+        }
+
+        .header-meta {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-size: 7.5pt;
+            color: #666;
+        }
+
+        .header-meta .label {
+            color: #00ff88;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 6.5pt;
+        }
+
+        /* ---- KPI CARDS ---- */
+        .kpi-grid {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            flex: 1;
+            background: linear-gradient(145deg, #141420, #0e0e14);
+            border: 1px solid #1e1e2e;
+            border-radius: 10px;
+            padding: 15px 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+        }
+
+        .kpi-card.blue::after {
+            background: linear-gradient(90deg, #5b8cff, transparent);
+        }
+
+        .kpi-card.green::after {
+            background: linear-gradient(90deg, #00ff88, transparent);
+        }
+
+        .kpi-card.purple::after {
+            background: linear-gradient(90deg, #9d4edd, transparent);
+        }
+
+        .kpi-label {
+            font-family: 'Courier New', monospace;
+            font-size: 6.5pt;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .kpi-value {
+            font-family: 'Courier New', monospace;
+            font-size: 16pt;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .kpi-value.green {
+            color: #00ff88;
+        }
+
+        .kpi-sub {
+            font-size: 7pt;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        /* ---- SECTION HEADERS ---- */
+        .section-header {
+            font-family: 'Courier New', monospace;
+            font-size: 9pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #5b8cff;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #1a1a2e;
+        }
+
+        .section-header::before {
+            content: "// ";
+            color: #333;
+        }
+
+        /* ---- TOP PRODUTOS LIST ---- */
+        .top-produtos {
+            margin-bottom: 25px;
+        }
+
+        .top-produto-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 14px;
+            background: #111118;
+            border: 1px solid #1a1a2e;
+            border-radius: 6px;
+            margin-bottom: 5px;
+        }
+
+        .top-produto-nome {
+            font-weight: 600;
+            color: #fff;
+            font-size: 8.5pt;
+        }
+
+        .top-produto-cat {
+            font-size: 7pt;
+            color: #666;
+        }
+
+        .top-produto-stats {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        .top-produto-qtd {
+            color: #00ff88;
+            font-weight: 700;
+            font-size: 9pt;
+        }
+
+        .top-produto-gasto {
+            color: #555;
+            font-size: 7pt;
+        }
+
+        /* ---- DATA TABLE ---- */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+        }
+
+        .data-table thead {
+            background: #111118;
+        }
+
+        .data-table th {
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 6.5pt;
+            color: #666;
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 2px solid #1e1e2e;
+        }
+
+        .data-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #141420;
+            color: #bbb;
+        }
+
+        .data-table tbody tr:hover {
+            background: #141420;
+        }
+
+        .data-table .col-nome {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .data-table .col-mercado {
+            color: #5b8cff;
+        }
+
+        .data-table .col-preco {
+            font-family: 'Courier New', monospace;
+            color: #00ff88;
+            font-weight: 700;
+        }
+
+        .data-table .col-qtd {
+            font-family: 'Courier New', monospace;
+            color: #ddd;
+        }
+
+        /* ---- FOOTER ---- */
+        .footer-note {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #1a1a2e;
+            font-family: 'Courier New', monospace;
+            font-size: 6.5pt;
+            color: #444;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-logo">
+            <div class="logo-icon">C</div>
+            <div>
+                <div class="header-title">compras<span>.io</span></div>
+            </div>
+        </div>
+        <div class="header-meta">
+            <div class="label">Relatório Gerado</div>
+            <div>{{ data_geracao }}</div>
+            <div style="margin-top: 4px; color: #00ff88;">■ Desktop App — SQLite Local</div>
+        </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+        <div class="kpi-card blue">
+            <div class="kpi-label">Gasto Total Acumulado</div>
+            <div class="kpi-value">R$ {{ gasto_total }}</div>
+            <div class="kpi-sub">Soma de todas as notas fiscais</div>
+        </div>
+
+        <div class="kpi-card green">
+            <div class="kpi-label">Total de Registros</div>
+            <div class="kpi-value green">{{ total_registros }}</div>
+            <div class="kpi-sub">Produtos no histórico</div>
+        </div>
+
+        <div class="kpi-card purple">
+            <div class="kpi-label">Categorias Únicas</div>
+            <div class="kpi-value">{{ total_categorias }}</div>
+            <div class="kpi-sub">Segmentos identificados</div>
+        </div>
+    </div>
+
+    <!-- TOP PRODUTOS -->
+    {% if top_produtos %}
+    <div class="top-produtos">
+        <div class="section-header">Top 5 Produtos Mais Comprados</div>
+        {% for p in top_produtos %}
+        <div class="top-produto-row">
+            <div>
+                <div class="top-produto-nome">{{ p.nome }}</div>
+                <div class="top-produto-cat">{{ p.categoria }}</div>
+            </div>
+            <div class="top-produto-stats">
+                <div class="top-produto-qtd">{{ p.total_quantidade }} un</div>
+                <div class="top-produto-gasto">R$ {{ "%.2f"|format(p.total_gasto) }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- TABELA DE HISTÓRICO COMPLETA -->
+    <div class="section-header">Histórico Completo de Preços & Produtos</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Produto</th>
+                <th>Categoria</th>
+                <th>Mercado</th>
+                <th>Qtd</th>
+                <th>Preço Un.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in historico %}
+            <tr>
+                <td>{{ row.data_compra }}</td>
+                <td class="col-nome">{{ row.nome }}</td>
+                <td>{{ row.categoria }}</td>
+                <td class="col-mercado">{{ row.local_mercado }}</td>
+                <td class="col-qtd">{{ row.quantidade }}</td>
+                <td class="col-preco">R$ {{ "%.2f"|format(row.preco_unitario) }}</td>
+            </tr>
+            {% endfor %}
+
+            {% if not historico %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 20px; color: #555;">
+                    Nenhum registro encontrado no banco de dados.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="footer-note">
+        Compras.io Desktop &bull; Relatório gerado automaticamente via Polars + WeasyPrint &bull; Dados 100% offline
+    </div>
+
+</body>
+</html>
