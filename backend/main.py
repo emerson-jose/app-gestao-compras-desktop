@@ -132,6 +132,45 @@ class DesktopApi:
         except Exception as e:
             return {"success": False, "error": f"Erro ao gerar relatório: {str(e)}"}
 
+    def atualizar_registro(self, produto_id, nota_id, nova_data, novo_nome, nova_qtd, novo_preco):
+        """
+        Atualiza um registro existente (Produto + NotaFiscal) no SQLite.
+        Recalcula subtotal do produto e valor_total da nota fiscal.
+        """
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+
+            # 1. Atualizar data_compra na NotaFiscal
+            cursor.execute(
+                "UPDATE NotasFiscais SET data_compra = ? WHERE id = ?",
+                (nova_data, nota_id)
+            )
+
+            # 2. Atualizar produto (nome, quantidade, preco_unitario, subtotal recalculado)
+            novo_subtotal = nova_qtd * novo_preco
+            cursor.execute(
+                "UPDATE Produtos SET nome = ?, quantidade = ?, preco_unitario = ?, subtotal = ? WHERE id = ?",
+                (novo_nome, nova_qtd, novo_preco, novo_subtotal, produto_id)
+            )
+
+            # 3. Recalcular valor_total da nota fiscal (soma de todos os subtotais)
+            cursor.execute(
+                "SELECT SUM(subtotal) FROM Produtos WHERE nota_fiscal_id = ?",
+                (nota_id,)
+            )
+            novo_total = cursor.fetchone()[0] or 0
+            cursor.execute(
+                "UPDATE NotasFiscais SET valor_total = ? WHERE id = ?",
+                (novo_total, nota_id)
+            )
+
+            conn.commit()
+            conn.close()
+            return {"success": True, "message": "Registro atualizado com sucesso!"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
 if __name__ == "__main__":
     # 1. Garantia estrita de que as tabelas SQLite existem ANTES de abrir a janela PyWebView
     init_db()
@@ -139,9 +178,9 @@ if __name__ == "__main__":
     api = DesktopApi()
     html_file = get_frontend_path()
     
-    # 2. Inicia janela desktop nativa
+    # Gestão Desktop de Compras & Estoque 2. Inicia janela desktop nativa
     window = webview.create_window(
-        title="Compras.io - Gestão Desktop de Compras & Estoque",
+        title=" ",
         url=html_file,
         js_api=api,
         width=1200,

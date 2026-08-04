@@ -73,7 +73,7 @@ def get_historico_precos(nome_filtro: str = ""):
 
     conn = sqlite3.connect(DB_PATH)
     query = """
-    SELECT P.nome, P.categoria, P.preco_unitario, P.quantidade, N.data_compra, N.local_mercado
+    SELECT P.id as produto_id, P.nome, P.categoria, P.preco_unitario, P.quantidade, N.id as nota_id, N.data_compra, N.local_mercado
     FROM Produtos P
     JOIN NotasFiscais N ON P.nota_fiscal_id = N.id
     """

@@ -63,7 +63,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="glass-panel rounded-2xl p-6 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-primaryBlue/10 rounded-full blur-xl"></div>
-                    <span class="text-xs font-mono uppercase tracking-wider text-textMuted">// Total Mês Atual</span>
+                    <span id="label-total-mes" class="text-xs font-mono uppercase tracking-wider text-textMuted">// Total Mês Atual</span>
                     <div id="stat-total-mes" class="text-3xl font-mono font-bold text-white mt-2">R$ 0,00</div>
                     <span class="text-xs text-accentGreen mt-2 block">Calculado via Polars Engine</span>
                 </div>
@@ -118,7 +118,7 @@
                         <h2 class="text-xl font-mono font-bold text-white">Cadastrar Nota Fiscal</h2>
                         <p class="text-xs text-textMuted mt-1">Insira os itens da nota fiscal do mercado</p>
                     </div>
-                    <span class="text-xs font-mono text-primaryBlue bg-primaryBlue/10 px-3 py-1 rounded-full border border-primaryBlue/20">Clean Code & Sync</span>
+                    <span class="text-xs font-mono text-primaryBlue bg-primaryBlue/10 px-3 py-1 rounded-full border border-primaryBlue/20">Compras & Consumo</span>
                 </div>
 
                 <form id="form-nota" onsubmit="handleSalvarNota(event)" class="space-y-6">
@@ -166,8 +166,14 @@
                         <h2 class="text-lg font-mono font-bold text-white">Histórico de Preços & Produtos</h2>
                         <p class="text-xs text-textMuted">Pesquise e analise a variação de preços por produto</p>
                     </div>
-                    <div class="flex items-center gap-3 w-full sm:w-auto">
-                        <input type="text" id="search-produto" oninput="filtrarHistorico()" placeholder="Buscar produto..." class="flex-1 sm:w-56 glass-input rounded-xl px-4 py-2 text-sm">
+                    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <input type="text" id="search-produto" oninput="filtrarHistorico()" placeholder="Buscar produto..." class="w-full sm:w-48 glass-input rounded-xl px-4 py-2 text-sm">
+                        <select id="filter-categoria" onchange="filtrarHistorico()" class="w-full sm:w-40 glass-input rounded-xl px-4 py-2 text-sm">
+                            <option value="">Todas Categorias</option>
+                        </select>
+                        <select id="filter-mercado" onchange="filtrarHistorico()" class="w-full sm:w-40 glass-input rounded-xl px-4 py-2 text-sm">
+                            <option value="">Todos Mercados</option>
+                        </select>
                         
                         <!-- BOTÕES DE EXPORTAÇÃO -->
                         <div class="flex items-center gap-2">
@@ -207,11 +213,12 @@
                                 <th class="py-3 px-4">Mercado</th>
                                 <th class="py-3 px-4">Qtd</th>
                                 <th class="py-3 px-4">Preço Un.</th>
+                                <th class="py-3 px-4">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="table-historico-body" class="divide-y divide-cardBorder text-sm">
                             <tr>
-                                <td colspan="6" class="py-6 text-center text-textMuted">Carregando histórico...</td>
+                                <td colspan="7" class="py-6 text-center text-textMuted">Carregando histórico...</td>
                             </tr>
                         </tbody>
                     </table>

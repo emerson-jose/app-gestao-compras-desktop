@@ -58,6 +58,34 @@ function parseNumber(value) {
     return isNaN(num) ? 0 : num;
 }
 
+// FEATURE 1: Variáveis globais para interação com o gráfico de meses
+let dashDadosPadrao = { mes: "", valor: 0 };
+let mesSelecionado = null;
+
+function toggleMesDash(elementoBarra, mes, valor) {
+    const totalMesEl = document.getElementById('stat-total-mes');
+    const labelEl = document.getElementById('label-total-mes');
+    if (!totalMesEl || !labelEl) return;
+
+    // Remove destaques de todas as barras
+    document.querySelectorAll('.barra-grafico').forEach(b => {
+        b.classList.remove('brightness-150', 'ring-2', 'ring-accentGreen');
+    });
+
+    if (mesSelecionado === mes) {
+        // Restaurar valores originais (último mês)
+        mesSelecionado = null;
+        totalMesEl.innerText = `R$ ${dashDadosPadrao.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        labelEl.innerText = '// Total Mês Atual';
+    } else {
+        // Atualizar com o mês selecionado
+        mesSelecionado = mes;
+        totalMesEl.innerText = `R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        labelEl.innerText = `// Total de ${mes}`;
+        elementoBarra.classList.add('brightness-150', 'ring-2', 'ring-accentGreen');
+    }
+}
+
 // ADICIONAR LINHA DE PRODUTO NO FORMULÁRIO
 function addProdutoRow() {
     const container = document.getElementById('produtos-container');
@@ -166,18 +194,30 @@ async function carregarDashboard() {
 function renderGastosMensais(data) {
     const container = document.getElementById('chart-gastos');
     const totalMesEl = document.getElementById('stat-total-mes');
+    const labelEl = document.getElementById('label-total-mes');
     if (!container) return;
+
+    // Reset seleção ao recarregar
+    mesSelecionado = null;
 
     if (!data || data.length === 0) {
         container.innerHTML = `<p class="text-sm text-textMuted m-auto py-8">Nenhum gasto registrado ainda.</p>`;
         if (totalMesEl) totalMesEl.innerText = "R$ 0,00";
+        dashDadosPadrao = { mes: "", valor: 0 };
         return;
     }
 
     const maxValor = Math.max(...data.map(d => d.total_mensal));
     const ultimoMes = data[data.length - 1];
+
+    // Salvar dados padrão do último mês
+    dashDadosPadrao = { mes: ultimoMes.mes, valor: ultimoMes.total_mensal };
+
     if (totalMesEl) {
         totalMesEl.innerText = `R$ ${ultimoMes.total_mensal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    }
+    if (labelEl) {
+        labelEl.innerText = '// Total Mês Atual';
     }
 
     container.innerHTML = data.map(item => {
@@ -187,8 +227,9 @@ function renderGastosMensais(data) {
                 <div class="text-[10px] font-mono text-accentGreen opacity-0 group-hover:opacity-100 transition-all mb-1">
                     R$ ${item.total_mensal.toFixed(0)}
                 </div>
-                <div class="w-full bg-gradient-to-t from-primaryBlue to-accentGreen rounded-t-lg transition-all duration-500 hover:brightness-125" 
-                     style="height: ${Math.max(alturaPercent, 15)}px;"></div>
+                <div class="barra-grafico cursor-pointer w-full bg-gradient-to-t from-primaryBlue to-accentGreen rounded-t-lg transition-all duration-500 hover:brightness-125" 
+                     style="height: ${Math.max(alturaPercent, 15)}px;"
+                     onclick="toggleMesDash(this, '${item.mes}', ${item.total_mensal})"></div>
                 <span class="text-[10px] font-mono text-textMuted mt-2">${item.mes}</span>
             </div>
         `;
@@ -225,20 +266,56 @@ function renderProdutosPopulares(data) {
     `).join('');
 }
 
-// CARREGAR HISTÓRICO DE PREÇOS
+// CARREGAR HISTÓRICO DE PREÇOS (busca completa uma única vez)
+let dadosHistoricoGlobal = [];
+
 async function carregarHistorico() {
     if (!window.pywebview || !window.pywebview.api) return;
-    const filtro = document.getElementById('search-produto')?.value || "";
     try {
-        const historico = await window.pywebview.api.obter_historico_precos(filtro);
-        renderTabelaHistorico(historico);
+        dadosHistoricoGlobal = await window.pywebview.api.obter_historico_precos("");
+        popularDropdownsFiltros(dadosHistoricoGlobal);
+        renderTabelaHistorico(dadosHistoricoGlobal);
     } catch (e) {
         console.error("Erro ao carregar histórico:", e);
     }
 }
 
+function popularDropdownsFiltros(data) {
+    const selectCategoria = document.getElementById('filter-categoria');
+    const selectMercado = document.getElementById('filter-mercado');
+    if (!selectCategoria || !selectMercado) return;
+
+    const categorias = [...new Set(data.map(item => item.categoria))].sort();
+    const mercados = [...new Set(data.map(item => item.local_mercado))].sort();
+
+    // Preservar seleção atual antes de reconstruir
+    const catAtual = selectCategoria.value;
+    const mercAtual = selectMercado.value;
+
+    selectCategoria.innerHTML = '<option value="">Todas Categorias</option>' +
+        categorias.map(c => `<option value="${c}">${c}</option>`).join('');
+
+    selectMercado.innerHTML = '<option value="">Todos Mercados</option>' +
+        mercados.map(m => `<option value="${m}">${m}</option>`).join('');
+
+    // Restaurar seleção se ainda existir
+    selectCategoria.value = catAtual;
+    selectMercado.value = mercAtual;
+}
+
 function filtrarHistorico() {
-    carregarHistorico();
+    const search = (document.getElementById('search-produto')?.value || "").toLowerCase();
+    const categoria = document.getElementById('filter-categoria')?.value || "";
+    const mercado = document.getElementById('filter-mercado')?.value || "";
+
+    const dadosFiltrados = dadosHistoricoGlobal.filter(row => {
+        const matchNome = row.nome.toLowerCase().includes(search);
+        const matchCategoria = categoria === "" || row.categoria === categoria;
+        const matchMercado = mercado === "" || row.local_mercado === mercado;
+        return matchNome && matchCategoria && matchMercado;
+    });
+
+    renderTabelaHistorico(dadosFiltrados);
 }
 
 function renderTabelaHistorico(data) {
@@ -246,11 +323,14 @@ function renderTabelaHistorico(data) {
     if (!tbody) return;
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-textMuted">Nenhum registro encontrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-textMuted">Nenhum registro encontrado.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = data.map(row => `
+    tbody.innerHTML = data.map(row => {
+        // Escapar aspas simples no nome para evitar erro no onclick
+        const nomeEscapado = row.nome.replace(/'/g, "\\'");
+        return `
         <tr class="hover:bg-white/5 transition-colors font-mono">
             <td class="py-3 px-4 text-textMuted">${row.data_compra}</td>
             <td class="py-3 px-4 font-semibold text-white">${row.nome}</td>
@@ -258,8 +338,49 @@ function renderTabelaHistorico(data) {
             <td class="py-3 px-4 text-primaryBlue">${row.local_mercado}</td>
             <td class="py-3 px-4 text-white">${row.quantidade}</td>
             <td class="py-3 px-4 text-accentGreen font-bold">R$ ${row.preco_unitario.toFixed(2)}</td>
+            <td class="py-3 px-4 text-center">
+                <button onclick="editarRegistroHTML(${row.produto_id}, ${row.nota_id}, '${row.data_compra}', '${nomeEscapado}', ${row.quantidade}, ${row.preco_unitario})" 
+                        class="text-base hover:scale-125 transition-transform" title="Editar registro">✏️</button>
+            </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
+}
+
+// FEATURE 2: Edição de registro via prompt() nativo
+async function editarRegistroHTML(produto_id, nota_id, dataAtual, nomeAtual, qtdAtual, precoAtual) {
+    const novaData = prompt('Data da compra (AAAA-MM-DD):', dataAtual);
+    if (novaData === null) return;
+
+    const novoNome = prompt('Nome do produto:', nomeAtual);
+    if (novoNome === null) return;
+
+    const novaQtdStr = prompt('Quantidade:', String(qtdAtual));
+    if (novaQtdStr === null) return;
+    const novaQtd = parseNumber(novaQtdStr);
+
+    const novoPrecoStr = prompt('Preço unitário (R$):', String(precoAtual));
+    if (novoPrecoStr === null) return;
+    const novoPreco = parseNumber(novoPrecoStr);
+
+    if (!novaData || !novoNome || novaQtd <= 0 || novoPreco <= 0) {
+        showToast('Preencha todos os campos com valores válidos.', 'error');
+        return;
+    }
+
+    try {
+        const res = await window.pywebview.api.atualizar_registro(produto_id, nota_id, novaData, novoNome, novaQtd, novoPreco);
+        if (res.success) {
+            showToast(res.message || 'Registro atualizado!', 'success');
+            carregarHistorico();
+            carregarDashboard();
+        } else {
+            showToast(res.error || 'Erro ao atualizar registro.', 'error');
+        }
+    } catch (err) {
+        console.error('Erro ao atualizar registro:', err);
+        showToast('Erro de comunicação com o backend Python.', 'error');
+    }
 }
 
 

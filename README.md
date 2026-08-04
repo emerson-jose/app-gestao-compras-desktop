@@ -51,6 +51,8 @@ Um aplicativo desktop moderno para registrar notas fiscais de supermercado, acom
 - **💾 Persistência 100% Local** — Banco de dados SQLite embutido com inicialização resiliente e caminho absoluto fixo.
 - **🎨 UI Moderna com Glassmorphism** — Interface Dark Mode com efeitos de vidro fosco, gradientes, micro-animações e tipografia monospace (Fira Code + Inter).
 - **📦 Compilável para .exe** — Preparado para empacotamento com PyInstaller, tratando caminhos via `sys._MEIPASS`.
+- **🖱️ Gráficos Interativos** — Clique nas barras de evolução mensal no dashboard para isolar e analisar os gastos de meses específicos no KPI principal.
+- **✏️ Edição Dinâmica de Registros** — Edite datas, nomes, quantidades e preços diretamente pela tabela de histórico com recálculo automático do valor total da nota no banco de dados.
 
 ---
 
@@ -58,9 +60,9 @@ Um aplicativo desktop moderno para registrar notas fiscais de supermercado, acom
 
 | Dashboard | Nova Compra | Histórico & Exportação |
 |:---------:|:-----------:|:---------------------:|
-| Gráficos de barras com gastos mensais e ranking de produtos | Formulário com itens dinâmicos e prévia do total em tempo real | Tabela com filtro + botões de exportação CSV/Parquet/PDF |
+| Gráficos de barras interativos com gastos mensais (clique para isolar mês) e ranking de produtos | Formulário com itens dinâmicos e prévia do total em tempo real | Tabela com filtro, botão de edição rápida ✏️ e exportação CSV/Parquet/PDF |
 
-> A interface utiliza um design **Dark Glassmorphism** com paleta de cores: `#0a0a0c` (fundo), `#5b8cff` (azul primário), `#00ff88` (verde acento) e `#9d4edd` (roxo acento).
+> A interface utiliza um design **Dark Glassmorphism** com paleta de cores: `#0a0a0c` (fundo), `#5b8cff` (azul primário), `#00ff88` (verde acento) e `#9d4edd` (roxo acento). O **Dashboard** agora é interativo — clique nas barras para detalhar gastos por mês. A **tabela de Histórico** inclui edição in-app com recálculo automático.
 
 ---
 
@@ -370,6 +372,8 @@ pyinstaller --onefile --windowed \
 - [x] Relatório PDF Dark Carbon
 - [x] Toast Notifications visuais
 - [x] Testes automatizados E2E
+- [x] Gráficos interativos no Dashboard (clique para isolar mês)
+- [x] Edição de registros in-app com recálculo automático
 - [ ] Gráficos SVG embutidos no PDF (via matplotlib)
 - [ ] Comparativo de preços entre mercados
 - [ ] Sistema de alertas de inflação por produto
