@@ -1,3 +1,12 @@
+
+
+https://github.com/user-attachments/assets/dd4b9225-3151-427e-9bbd-1d71034bc52f
+
+
+
+<img width="1366" height="726" alt="image (1)" src="https://github.com/user-attachments/assets/b2361406-5568-4971-85c0-1703f3645ce5" />
+<img width="1365" height="714" alt="image" src="https://github.com/user-attachments/assets/13acda67-7e05-4562-a7d5-dbc390790729" />
+<img width="1361" height="711" alt="image (2)" src="https://github.com/user-attachments/assets/b494c394-4a26-4325-9449-6fe09458602b" />
 <div align="center">
 
 # 🛒 Compras.io Desktop
